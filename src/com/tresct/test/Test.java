@@ -15,6 +15,7 @@ import org.hibernate.Session;
 
 import com.tresct.dto.Avaluo;
 import com.tresct.dto.DiarioCliente;
+import com.tresct.dto.DiarioCliente_;
 import com.tresct.dto.Tramite;
 import com.tresct.dto.Tramite_;
 import com.tresct.util.HibernateUtil;
@@ -25,10 +26,13 @@ public class Test {
 	public static void main(String[] args) {
 
 		try {
-//			configuracion();
-			consultar();
+			// configuracion();
+			// consultarTramitesDeDiario();
+
+			consultarDiariosDeTramite();
 
 		} catch (Exception hbe) {
+			hbe.printStackTrace();
 			System.out.println("HibernateeXCEPTION: " + hbe.getMessage());
 		}
 	}
@@ -76,27 +80,24 @@ public class Test {
 		}
 	}
 
-	// Consultas para relaciones onetoMany
-	public static void consultar() {
+	// Consultas para relaciones onetoMany tramites que aparecen en diarioCliente
+	public static void consultarTramitesDeDiario() {
 		Session session = null;
 
 		try {
 			session = HibernateUtil.getSessionFactory().openSession();
 
-			// Consulta de todos los tramites que aparecen en avaluos
+			// Consulta de todos los tramites que aparecen en diarioCliente
 			CriteriaBuilder builder = session.getCriteriaBuilder();
 			CriteriaQuery<Tramite> criteria = builder.createQuery(Tramite.class);
 			Root<Tramite> root = criteria.from(Tramite.class);
-			
-			Join<Tramite , DiarioCliente> join = root.join(Tramite_.diarioClienteSet);
+
+			Join<Tramite, DiarioCliente> join = root.join(Tramite_.diarioClienteSet);
 			criteria.select(root).distinct(true);
-			
-			
-			//Consultar todos los diarios de  un tramite
-			
-			
+
 			List<Tramite> results = session.createQuery(criteria).getResultList();
-			for(Tramite t : results) {
+			System.out.println("Numero de tramites: " + results.size());
+			for (Tramite t : results) {
 				System.out.println("Elemento: " + t.toString());
 			}
 
@@ -105,6 +106,42 @@ public class Test {
 			session.getTransaction().rollback();
 			session.close();
 
+		} finally {
+			session.close();
+		}
+
+	}
+
+	public static void consultarDiariosDeTramite() {
+		Session session = null;
+
+		try {
+			session = HibernateUtil.getSessionFactory().openSession();
+
+			// Consultar todos los diarios de un trámite
+			// Consulta de todos los tramites que aparecen en diarioCliente
+			CriteriaBuilder builder = session.getCriteriaBuilder();
+			CriteriaQuery<DiarioCliente> criteria = builder.createQuery( DiarioCliente.class );
+			Root<DiarioCliente> root = criteria.from( DiarioCliente.class );
+			
+			Join<DiarioCliente, Tramite> join = root.join(DiarioCliente_.tramite);
+			
+			criteria.where(
+					builder.equal(root.get(DiarioCliente_.tramite), session.load(Tramite.class, 17))
+					);
+			
+			List<DiarioCliente> results = session.createQuery(criteria).getResultList();
+			System.out.println("Resultados: " + results.size());
+			System.out.println(results);
+
+		} catch (HibernateException hbe) {
+			System.out.println("HibernateException: " + hbe.getMessage());
+			session.getTransaction().rollback();
+			session.close();
+
+		} finally {
+
+			session.close();
 		}
 
 	}

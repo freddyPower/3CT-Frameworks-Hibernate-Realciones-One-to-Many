@@ -17,6 +17,7 @@ public class DiarioCliente {
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	private int idDiario;
+	
 	private String entradaDiario;
 	private Timestamp fechaDiario;
 	
@@ -74,5 +75,4 @@ public class DiarioCliente {
 				+ fechaDiario + ", tramite=" + tramite + "]";
 	}
 
-	
 }
